@@ -45,8 +45,7 @@ Core/Src/compute_angles.o: ../Core/Src/compute_angles.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/rtos_threads.h ../Core/Inc/oled.h ../Core/Inc/ssd1306.h \
- ../Core/Inc/write_printf.h
+ ../Core/Inc/rtos_threads.h ../Core/Inc/write_printf.h
 ../Core/Inc/compute_angles.h:
 ../Core/Inc/mpu6050.h:
 ../Core/Inc/main.h:
@@ -96,6 +95,4 @@ Core/Src/compute_angles.o: ../Core/Src/compute_angles.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 ../Core/Inc/rtos_threads.h:
-../Core/Inc/oled.h:
-../Core/Inc/ssd1306.h:
 ../Core/Inc/write_printf.h:

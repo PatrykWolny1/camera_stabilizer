@@ -9,8 +9,6 @@
 #include "write_printf.h"
 #include "main.h"
 
-extern MPU6050_Data dataToProcess;
-
 void MPU6050_Init(void) {
     uint8_t data[2];
 

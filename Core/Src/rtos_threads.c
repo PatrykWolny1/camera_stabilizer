@@ -9,6 +9,8 @@
 #include "rtos_threads.h"
 #include "mpu6050.h"
 #include "compute_angles.h"
+#include "motorControlPID.h"
+#include "ssd1306.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <time.h>
@@ -18,15 +20,17 @@
 #include <string.h>
 
 extern osMessageQueueId_t MPU6050DataHandle;
-extern osMutexId_t uartMutex;
-extern osSemaphoreId_t dmaTxCompleteSemaphore;
+extern osMessageQueueId_t KalmanAngleHandle;
+extern osMutexId_t uartMutexHandle;
+extern osSemaphoreId_t dmaTxCompleteSemaphoreHandle;
 
-void mpu6050_ReadData(void) {
+void mpu6050_ReadData(void *argument) {
     MPU6050_Data dataToProcess;
     char buffer[200];
 
-    OLED_Init();
-    printf("OLED initialized\r\n");
+    SSD1306_Init();
+	printf("OLED initialized\r\n");
+
     MPU6050_Init();
     printf("MPU6050 initialized\r\n");
 
@@ -39,27 +43,25 @@ void mpu6050_ReadData(void) {
         // Read sensor data
         MPU6050_ReadAll(&dataToProcess);
 
-        // Format sensor data
-//        snprintf(buffer, sizeof(buffer),
-//                 "Xa=%6.2f Xg=%6.2f Ya=%6.2f Yg=%6.2f Za=%6.2f Zg=%6.2f\r\n",
-//                 dataToProcess.accelX, dataToProcess.gyroX, dataToProcess.accelY,
-//				 dataToProcess.gyroY, dataToProcess.accelZ, dataToProcess.gyroZ);
-//        printf("Xa=%.2f Xg=%.2f Ya=%.2f Yg=%.2f Za=%.2f Zg=%.2f\r\n",
-//                 dataToProcess.accelX, dataToProcess.gyroX, dataToProcess.accelY,
-//				 dataToProcess.gyroY, dataToProcess.accelZ, dataToProcess.gyroZ);
-        // Transmit data over UART
-        //if (osMutexAcquire(uartMutex, 100) == osOK) {  // Use timeout to avoid deadlocks
-            //if (HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buffer, strlen(buffer)) == HAL_OK) {
-            //    if (osSemaphoreAcquire(dmaTxCompleteSemaphore, 100) != osOK) {
-            //        printf("UART DMA timeout\r\n");
-            //    }
-            //} else {
-            //    printf("UART DMA transmission failed\r\n");
-            //}
-            //osMutexRelease(uartMutex);  // Release mutex
-        //} else {
-            //printf("UART mutex acquire failed\r\n");
-        //}
+        //Format sensor data
+        snprintf(buffer, sizeof(buffer),
+                 "Xa=%6.2f Xg=%6.2f Ya=%6.2f Yg=%6.2f Za=%6.2f Zg=%6.2f\r\n",
+                 dataToProcess.accelX, dataToProcess.gyroX, dataToProcess.accelY,
+				 dataToProcess.gyroY, dataToProcess.accelZ, dataToProcess.gyroZ);
+
+        //Transmit data over UART
+        if (osMutexAcquire(uartMutexHandle, 100) == osOK) {  // Use timeout to avoid deadlocks
+            if (HAL_UART_Transmit_DMA(&huart2, (uint8_t *)buffer, strlen(buffer)) == HAL_OK) {
+                if (osSemaphoreAcquire(dmaTxCompleteSemaphoreHandle, 100) != osOK) {
+                    printf("UART DMA timeout\r\n");
+                }
+            } else {
+                printf("UART DMA transmission failed\r\n");
+            }
+            osMutexRelease(uartMutexHandle);  // Release mutex
+        } else {
+            printf("UART mutex acquire failed\r\n");
+        }
 
         // Send data to the queue
         if (osMessageQueuePut(MPU6050DataHandle, &dataToProcess, 0, 200) != osOK) {
@@ -71,7 +73,7 @@ void mpu6050_ReadData(void) {
 }
 
 
-void DataProcessing(void) {
+void DataProcessing(void *argument) {
     MPU6050_Data receivedData;
     PitchRollYaw *resultsPRY;
 
@@ -82,6 +84,7 @@ void DataProcessing(void) {
     float kalmanRoll;
     float kalmanPitch;
     double dt;
+
     char buffer[200];
 
     printf("DataProcessing task started\r\n");
@@ -156,50 +159,47 @@ void DataProcessing(void) {
     }
 }
 
-void motorRun(void) {
-  // Start PWM on all channels
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1); // PA15 (UL)
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2); // PB3 (UH)
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3); // PB10 (VL)
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_4); // PB11 (VH)
+void motorRun(void *argument) {
 
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1); // PA6 (WL)
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2); // PA7 (WH)
+	motorControlPID *motorControlPID;
 
-  while (1) {
-    /* USER CODE END WHILE */
-    // Update PWM duty cycle for open-loop control
+	// Start PWM on all channels
+	pwmInit();
 
-    // Increment phase
-    // phase += motor_speed * TWO_PI / 1000.0f; // Increment based on speed
-    // // printf("Phase: %.2f\r\n", phase);
-    // if (phase >= TWO_PI) {
-    //     phase -= TWO_PI; // Wrap phase
-    // }
-    // // Calculate the electrical angle for the target position
-    // set_pwm_duty_cycle(phase, motor_speed);
-    // delay_us(&htim4, 170); // 1 ms delay for ~1 kHz update rate
-    // Calculate error
+	while (1) {
+	/* USER CODE END WHILE */
+	// Update PWM duty cycle for open-loop control
+
+	// Increment phase
+	// phase += motor_speed * TWO_PI / 1000.0f; // Increment based on speed
+	// // printf("Phase: %.2f\r\n", phase);
+	// if (phase >= TWO_PI) {
+	//     phase -= TWO_PI; // Wrap phase
+	// }
+	// // Calculate the electrical angle for the target position
+	// set_pwm_duty_cycle(phase, motor_speed);
+	// delay_us(&htim4, 170); // 1 ms delay for ~1 kHz update rate
+	// Calculate error
 
 	// Check user button
-    if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) {
-        // Increment target position by 1.57 rad (90 degrees)
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET) {
+		// Increment target position by 1.57 rad (90 degrees)
 
 
-        // Wait until button is released (debounce)
-        while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET);
+		// Wait until button is released (debounce)
+		while (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET);
 
-        // Wait for the motor to stabilize
-        // wait_for_stabilization();
-        current_position = 0;
-        target_position = 1.57f;
-    }
-    // Continue control loop
-    control_loop();
+		// Wait for the motor to stabilize
+		// wait_for_stabilization();
+		motorControlPID->current_position = 0;
+		motorControlPID->target_position = 1.57f;
+	}
+	// Continue control loop
+	controlLoop(motorControlPID, 0);
 
-    // Delay for loop timing
-    delay_us(&htim4, 250); // Adjust for your desired update rate
-  }
+	// Delay for loop timing
+//	delay_us(&htim4, 250); // Adjust for your desired update rate
+	}
 }
 
 

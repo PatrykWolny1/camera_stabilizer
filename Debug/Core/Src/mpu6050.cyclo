@@ -1,0 +1,7 @@
+../Core/Src/mpu6050.c:12:6:MPU6050_Init	3
+../Core/Src/mpu6050.c:77:6:MPU6050_ReadAll	2
+../Core/Src/mpu6050.c:104:6:MPU6050_CalibrateInternal	1
+../Core/Src/mpu6050.c:120:6:MPU6050_CalibrateExternal	1
+../Core/Src/mpu6050.c:133:6:MPU6050_CalculateOffsets	3
+../Core/Src/mpu6050.c:164:6:MPU6050_WriteOffsets	1
+../Core/Src/mpu6050.c:223:6:MPU6050_SoftReset	1

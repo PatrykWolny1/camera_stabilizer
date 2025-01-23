@@ -18,7 +18,8 @@
 #include <unistd.h> // For getcwd
 #include <stdlib.h>  // For malloc/free
 
-void mpu6050_ReadData(void *argument);
-void DataProcessing(void *argument);
+void mpu6050_ReadData(void);
+void DataProcessing(void);
+void motorRun(void);
 
 #endif /* INC_RTOS_THREADS_H_ */

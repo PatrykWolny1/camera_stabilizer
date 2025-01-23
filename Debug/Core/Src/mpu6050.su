@@ -1,0 +1,7 @@
+../Core/Src/mpu6050.c:12:6:MPU6050_Init	48	static
+../Core/Src/mpu6050.c:77:6:MPU6050_ReadAll	64	static
+../Core/Src/mpu6050.c:104:6:MPU6050_CalibrateInternal	16	static
+../Core/Src/mpu6050.c:120:6:MPU6050_CalibrateExternal	16	static
+../Core/Src/mpu6050.c:133:6:MPU6050_CalculateOffsets	80	static
+../Core/Src/mpu6050.c:164:6:MPU6050_WriteOffsets	40	static
+../Core/Src/mpu6050.c:223:6:MPU6050_SoftReset	32	static

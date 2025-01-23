@@ -22,8 +22,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "motorRun.h"
 #include "motorControlPID.h"
+#include "compute_angles.h"
 #include "mpu6050.h"
 #include "rtos_threads.h"
 /* USER CODE END Includes */
@@ -59,12 +59,12 @@ TIM_HandleTypeDef htim8;
 UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_tx;
 
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
-  .stack_size = 128 * 4,
-  .priority = (osPriority_t) osPriorityNormal,
+/* Definitions for MotorRun */
+osThreadId_t MotorRunHandle;
+const osThreadAttr_t MotorRun_attributes = {
+  .name = "MotorRun",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 /* Definitions for MPU6050Task */
 osThreadId_t MPU6050TaskHandle;
@@ -80,24 +80,25 @@ const osThreadAttr_t DataProcessingT_attributes = {
   .stack_size = 512 * 4,
   .priority = (osPriority_t) osPriorityBelowNormal,
 };
-/* Definitions for MotorRun */
-osThreadId_t MotorRunHandle;
-const osThreadAttr_t MotorRun_attributes = {
-  .name = "MotorRun",
-  .stack_size = 2048 * 4,
-  .priority = (osPriority_t) osPriorityHigh,
-};
-/* Definitions for MotorControlPID */
-osThreadId_t MotorControlPIDHandle;
-const osThreadAttr_t MotorControlPID_attributes = {
-  .name = "MotorControlPID",
-  .stack_size = 2048 * 4,
-  .priority = (osPriority_t) osPriorityLow,
-};
 /* Definitions for MPU6050Data */
 osMessageQueueId_t MPU6050DataHandle;
 const osMessageQueueAttr_t MPU6050Data_attributes = {
   .name = "MPU6050Data"
+};
+/* Definitions for KalmanAngle */
+osMessageQueueId_t KalmanAngleHandle;
+const osMessageQueueAttr_t KalmanAngle_attributes = {
+  .name = "KalmanAngle"
+};
+/* Definitions for uartMutex */
+osMutexId_t uartMutexHandle;
+const osMutexAttr_t uartMutex_attributes = {
+  .name = "uartMutex"
+};
+/* Definitions for dmaTxCompleteSemaphore */
+osSemaphoreId_t dmaTxCompleteSemaphoreHandle;
+const osSemaphoreAttr_t dmaTxCompleteSemaphore_attributes = {
+  .name = "dmaTxCompleteSemaphore"
 };
 /* USER CODE BEGIN PV */
 
@@ -173,10 +174,17 @@ int main(void)
 
   /* Init scheduler */
   osKernelInitialize();
+  /* Create the mutex(es) */
+  /* creation of uartMutex */
+  uartMutexHandle = osMutexNew(&uartMutex_attributes);
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
+
+  /* Create the semaphores(s) */
+  /* creation of dmaTxCompleteSemaphore */
+  dmaTxCompleteSemaphoreHandle = osSemaphoreNew(1, 1, &dmaTxCompleteSemaphore_attributes);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -190,24 +198,22 @@ int main(void)
   /* creation of MPU6050Data */
   MPU6050DataHandle = osMessageQueueNew (10, sizeof(MPU6050_Data), &MPU6050Data_attributes);
 
+  /* creation of KalmanAngle */
+  KalmanAngleHandle = osMessageQueueNew (80, sizeof(KalmanFilter), &KalmanAngle_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
+  /* creation of MotorRun */
+  MotorRunHandle = osThreadNew(motorRun, NULL, &MotorRun_attributes);
 
   /* creation of MPU6050Task */
   MPU6050TaskHandle = osThreadNew(mpu6050_ReadData, NULL, &MPU6050Task_attributes);
 
   /* creation of DataProcessingT */
   DataProcessingTHandle = osThreadNew(DataProcessing, NULL, &DataProcessingT_attributes);
-
-  /* creation of MotorRun */
-  MotorRunHandle = osThreadNew(motorRun, NULL, &MotorRun_attributes);
-
-  /* creation of MotorControlPID */
-  MotorControlPIDHandle = osThreadNew(motorControlPID, NULL, &MotorControlPID_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

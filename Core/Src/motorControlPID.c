@@ -6,46 +6,56 @@
  */
 
 #include "motorControlPID.h"
+#include "math.h"
 
-void control_loop(void)
+void pwmInit(void) {
+	HAL_TIM_PWM_Start(&htim2, MOTOR_PITCH_PWM_PIN_UL);
+	HAL_TIM_PWM_Start(&htim2, MOTOR_PITCH_PWM_PIN_UH);
+	HAL_TIM_PWM_Start(&htim1, MOTOR_PITCH_PWM_PIN_VL);
+	HAL_TIM_PWM_Start(&htim1, MOTOR_PITCH_PWM_PIN_VH);
+	HAL_TIM_PWM_Start(&htim1, MOTOR_PITCH_PWM_PIN_WL);
+	HAL_TIM_PWM_Start(&htim1, MOTOR_PITCH_PWM_PIN_WH);
+}
+
+void controlLoop(motorControlPID *motorControlPID, uint8_t motor_pitch_roll)
 {
     // Calculate error
-    error = target_position - current_position;
+	motorControlPID->error = motorControlPID->target_position - motorControlPID->current_position;
 
     // Check if the position is reached
-    if (fabs(error) < 0.01f) { // Error threshold
-        position_reached = 1; // Mark position as stabilized
+    if (fabs(motorControlPID->error) < 0.01f) { // Error threshold
+    	motorControlPID->position_reached = 1; // Mark position as stabilized
     } else {
-        position_reached = 0; // Motor is still moving
+    	motorControlPID->position_reached = 0; // Motor is still moving
     }
 
     // PID control
-    float proportional = kp * error;
-    integral += error; // Accumulate integral
-    float integral_term = ki * integral;
-    derivative = error - previous_error;
-    float derivative_term = kd * derivative;
-    control_output = proportional + integral_term + derivative_term;
+    motorControlPID->proportional = motorControlPID->kp * motorControlPID->error;
+    motorControlPID->integral += motorControlPID->error; // Accumulate integral
+    motorControlPID->integral_term = motorControlPID->ki * motorControlPID->integral;
+    motorControlPID->derivative = motorControlPID->error - motorControlPID->previous_error;
+    motorControlPID->derivative_term = motorControlPID->kd * motorControlPID->derivative;
+    motorControlPID->control_output = motorControlPID->proportional + motorControlPID->integral_term + motorControlPID->derivative_term;
 
     // Update motor phase
-    phase += control_output; // Adjust phase based on control output
-    if (phase >= TWO_PI) {
-        phase -= TWO_PI;
-    } else if (phase < 0.0f) {
-        phase += TWO_PI;
+    motorControlPID->phase += motorControlPID->control_output; // Adjust phase based on control output
+    if (motorControlPID->phase >= TWO_PI) {
+    	motorControlPID->phase -= TWO_PI;
+    } else if (motorControlPID->phase < 0.0f) {
+    	motorControlPID->phase += TWO_PI;
     }
 
     // Apply PWM signal
-    set_pwm_duty_cycle_position(phase);
+    setPWMDutyCyclePosition(motorControlPID->phase, motor_pitch_roll);
 
     // Update current position (simulated, replace with actual feedback if available)
-    current_position += control_output / MOTOR_POLE_PAIRS;
+    motorControlPID->current_position += motorControlPID->control_output / MOTOR_POLE_PAIRS;
 
     // Store previous error
-    previous_error = error;
+    motorControlPID->previous_error = motorControlPID->error;
 }
 
-void set_pwm_duty_cycle_position(float electrical_angle) {
+void setPWMDutyCyclePosition(float electrical_angle, uint8_t motor_pitch_roll) {
     // // Calculate sine values for each phase
     // float sin_u = 0.5f + 0.5f * sinf(electrical_angle);                // Phase U
     // float sin_v = 0.5f + 0.5f * sinf(electrical_angle - TWO_PI / 3.0); // Phase V
@@ -66,13 +76,18 @@ void set_pwm_duty_cycle_position(float electrical_angle) {
     uint16_t duty_v = (uint16_t)(sin_v * PWM_PERIOD);
     uint16_t duty_w = (uint16_t)(sin_w * PWM_PERIOD);
 
-    // Set high-side PWM channels
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, duty_u); // UH
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_4, duty_v); // VH
-    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_2, duty_w); // WH
+    if (motor_pitch_roll) {
+		// Set high-side PWM channels
+		__HAL_TIM_SET_COMPARE(&htim2, MOTOR_PITCH_PWM_PIN_UH, duty_u); // UH
+		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_PITCH_PWM_PIN_VH, duty_v); // VH
+		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_PITCH_PWM_PIN_WH, duty_w); // WH
 
-    // Set low-side PWM channels
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PWM_PERIOD - duty_u); // UL
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_3, PWM_PERIOD - duty_v); // VL
-    __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, PWM_PERIOD - duty_w); // WL
+		// Set low-side PWM channels
+		__HAL_TIM_SET_COMPARE(&htim2, MOTOR_PITCH_PWM_PIN_UL, PWM_PERIOD - duty_u); // UL
+		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_PITCH_PWM_PIN_VL, PWM_PERIOD - duty_v); // VL
+		__HAL_TIM_SET_COMPARE(&htim1, MOTOR_PITCH_PWM_PIN_WL, PWM_PERIOD - duty_w); // WL
+    } else {
+    	printf("SECOND MOTOR");
+    }
+
 }
