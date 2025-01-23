@@ -17,6 +17,11 @@ void SSD1306_Write(uint8_t data, uint8_t cmd) {
 }
 
 void SSD1306_Init(void) {
+	uint8_t init_cmd = 0xAA;
+	if (HAL_SPI_Transmit(SSD1306_SPI, &init_cmd, 1, HAL_MAX_DELAY) != HAL_OK) {
+		printf("SPI transmission error\r\n");
+	}
+
     // Reset the OLED (if the RESET pin is connected)
     HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET); // Replace GPIOB and PIN_2 with your RESET pin
     HAL_Delay(10);                                        // Wait 10ms
@@ -54,6 +59,8 @@ void SSD1306_Init(void) {
 
     SSD1306_Clear();
     SSD1306_UpdateScreen();
+
+    HAL_Delay(10);                                        // Wait 10ms
 }
 
 void SSD1306_Clear(void) {

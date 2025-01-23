@@ -17,6 +17,10 @@ void pwmInit(void) {
 	HAL_TIM_PWM_Start(&htim1, MOTOR_PITCH_PWM_PIN_WH);
 }
 
+void pidInit(motorControlPID *motorControlPID) {
+	motorControlPID->current_position = 0;
+}
+
 void controlLoop(motorControlPID *motorControlPID, uint8_t motor_pitch_roll)
 {
     // Calculate error

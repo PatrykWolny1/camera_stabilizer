@@ -1,3 +1,3 @@
 ../Core/Src/rtos_threads.c:27:6:mpu6050_ReadData	344	static
-../Core/Src/rtos_threads.c:76:6:DataProcessing	368	static
-../Core/Src/rtos_threads.c:162:6:motorRun	24	static
+../Core/Src/rtos_threads.c:85:6:DataProcessing	464	static
+../Core/Src/rtos_threads.c:175:6:motorRun	16	static
