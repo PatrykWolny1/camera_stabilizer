@@ -1,0 +1,7 @@
+../Core/Src/compute_angles.c:13:8:computeDT	3
+../Core/Src/compute_angles.c:41:7:radiansToDegrees	1
+../Core/Src/compute_angles.c:45:13:complementary_filter	1
+../Core/Src/compute_angles.c:65:6:Kalman_Init	1
+../Core/Src/compute_angles.c:82:7:Kalman_Update	1
+../Core/Src/compute_angles.c:132:15:computeAngles	1
+../Core/Src/compute_angles.c:153:15:computeAnglesAcc	1
