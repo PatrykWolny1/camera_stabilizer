@@ -44,6 +44,7 @@ double computeDT(uint32_t *prevTick);
 void Kalman_Init(KalmanFilter *kf, float Q_angle, float Q_bias, float R_measure);
 float Kalman_Update(KalmanFilter *kf, float new_angle, float new_rate, float dt);
 PitchRollYaw* computeAngles(MPU6050_Data *dataToProcess, uint32_t *prevTick);
+PitchRollYaw* computeAnglesAcc(MPU6050_Data *dataToProcess);
 CompFilter* complementary_filter(PitchRollYaw *resultsPRY, MPU6050_Data *dataToProcess, uint32_t *prevTick);
 
 #endif

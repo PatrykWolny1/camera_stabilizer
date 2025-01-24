@@ -9,16 +9,14 @@
 #define INC_MOTORCONTROLPID_H_
 
 #include "main.h"
-#define PWM_FREQUENCY 80000    // 80 kHz
+#define PWM_FREQUENCY 100000    // 60 kHz
 #define ENABLE_PIN GPIO_PIN_0  // Motor driver enable pin
 #define ENABLE_PORT GPIOC
 
 #define MOTOR_POLE_PAIRS 7     // Number of pole pairs of the motor
-#define PRESCALER_VALUE 1     // Prescaler value for 64 MHz clock
-#define PWM_PERIOD 800        // ARR value for 20 kHz PWM with 64 MHz clock
+#define PWM_PERIOD 1250
 
 #define TWO_PI 6.28318530718f  // 2 * pi for sine calculation
-#define M_PI 3.14159265359f    // pi constant
 
 #define MOTOR_PITCH_PWM_PIN_UL TIM_CHANNEL_1	//PA0 TIM2
 #define MOTOR_PITCH_PWM_PIN_UH TIM_CHANNEL_2	//PA1 TIM2
@@ -52,7 +50,8 @@ struct {
    float control_output;
 } typedef motorControlPID;
 
-void motorInit(void);
+void pwmInit(void);
+void pidInit(motorControlPID *motorControlPID, float kp, float kd, float ki);
 void controlLoop(motorControlPID *motorControlPID, uint8_t motor_pitch_roll);
 void setPWMDutyCyclePosition(float electrical_angle, uint8_t motor_pitch_roll);
 

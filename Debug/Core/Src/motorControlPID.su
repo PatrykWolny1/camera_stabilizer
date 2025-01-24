@@ -1,3 +1,4 @@
 ../Core/Src/motorControlPID.c:11:6:pwmInit	8	static
-../Core/Src/motorControlPID.c:20:6:controlLoop	16	static
-../Core/Src/motorControlPID.c:58:6:setPWMDutyCyclePosition	56	static
+../Core/Src/motorControlPID.c:20:6:pidInit	24	static
+../Core/Src/motorControlPID.c:37:6:controlLoop	16	static
+../Core/Src/motorControlPID.c:77:6:setPWMDutyCyclePosition	56	static

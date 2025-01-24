@@ -1,3 +1,6 @@
-../Core/Src/rtos_threads.c:27:6:mpu6050_ReadData	6
-../Core/Src/rtos_threads.c:85:6:DataProcessing	9
-../Core/Src/rtos_threads.c:175:6:motorRun	3
+../Core/Src/rtos_threads.c:23:6:DWT_Init	2
+../Core/Src/rtos_threads.c:30:6:Delay_us	2
+../Core/Src/rtos_threads.c:46:6:mpu6050_ReadData	6
+../Core/Src/rtos_threads.c:110:6:DataProcessing	12
+../Core/Src/rtos_threads.c:203:6:HAL_GPIO_EXTI_Callback	4
+../Core/Src/rtos_threads.c:218:6:motorRun	1

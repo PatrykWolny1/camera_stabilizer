@@ -21,6 +21,7 @@
 void SSD1306_Init(void);
 void SSD1306_Write(uint8_t data, uint8_t cmd);
 void SSD1306_Clear(void);
+void SSD1306_ClearRegion(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
 void SSD1306_UpdateScreen(void);
 void SSD1306_DrawPixel(uint8_t x, uint8_t y, uint8_t color);
 void SSD1306_DrawChar(uint8_t x, uint8_t y, char c, uint8_t color);
