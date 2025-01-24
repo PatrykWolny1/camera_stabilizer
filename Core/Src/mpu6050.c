@@ -12,9 +12,9 @@
 void MPU6050_Init(void) {
     uint8_t data[2];
 
-//    MPU6050_SoftReset();
+    MPU6050_SoftReset();
 
-    HAL_Delay(2000);
+    HAL_Delay(500);
 
     // Wake up the MPU6050 (write 0 to PWR_MGMT_1 register)
     data[0] = 0x6B;  // Register address

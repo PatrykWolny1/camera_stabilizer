@@ -1,0 +1,3 @@
+../Core/Src/save_pitch_roll.c:10:6:EraseSector	1
+../Core/Src/save_pitch_roll.c:27:6:WriteFloatToFlash	1
+../Core/Src/save_pitch_roll.c:37:7:ReadFloatFromFlash	1

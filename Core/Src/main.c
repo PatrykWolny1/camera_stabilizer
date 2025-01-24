@@ -210,7 +210,7 @@ int main(void)
   MPU6050DataHandle = osMessageQueueNew (10, sizeof(MPU6050_Data), &MPU6050Data_attributes);
 
   /* creation of KalmanAngle */
-  KalmanAngleHandle = osMessageQueueNew (80, sizeof(KalmanFilter), &KalmanAngle_attributes);
+  KalmanAngleHandle = osMessageQueueNew (10, sizeof(float), &KalmanAngle_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */

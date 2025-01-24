@@ -47,7 +47,8 @@ Core/Src/rtos_threads.o: ../Core/Src/rtos_threads.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
  ../Core/Inc/rtos_threads.h ../Core/Inc/mpu6050.h \
  ../Core/Inc/compute_angles.h ../Core/Inc/mpu6050.h \
- ../Core/Inc/motorControlPID.h ../Core/Inc/ssd1306.h
+ ../Core/Inc/motorControlPID.h ../Core/Inc/save_pitch_roll.h \
+ ../Core/Inc/ssd1306.h
 ../Core/Inc/rtos_threads.h:
 ../Core/Inc/write_printf.h:
 ../Core/Inc/main.h:
@@ -101,4 +102,5 @@ Core/Src/rtos_threads.o: ../Core/Src/rtos_threads.c \
 ../Core/Inc/compute_angles.h:
 ../Core/Inc/mpu6050.h:
 ../Core/Inc/motorControlPID.h:
+../Core/Inc/save_pitch_roll.h:
 ../Core/Inc/ssd1306.h:

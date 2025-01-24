@@ -1,5 +1,5 @@
-Core/Src/motorControlPID.o: ../Core/Src/motorControlPID.c \
- ../Core/Inc/motorControlPID.h ../Core/Inc/main.h \
+Core/Src/save_pitch_roll.o: ../Core/Src/save_pitch_roll.c \
+ ../Core/Inc/save_pitch_roll.h ../Core/Inc/main.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h \
  ../Core/Inc/stm32f4xx_hal_conf.h \
  ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h \
@@ -45,9 +45,8 @@ Core/Src/motorControlPID.o: ../Core/Src/motorControlPID.c \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
  ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h \
- ../Core/Inc/rtos_threads.h ../Core/Inc/write_printf.h \
- ../Core/Inc/save_pitch_roll.h
-../Core/Inc/motorControlPID.h:
+ ../Core/Inc/rtos_threads.h ../Core/Inc/write_printf.h
+../Core/Inc/save_pitch_roll.h:
 ../Core/Inc/main.h:
 ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h:
 ../Core/Inc/stm32f4xx_hal_conf.h:
@@ -96,4 +95,3 @@ Core/Src/motorControlPID.o: ../Core/Src/motorControlPID.c \
 ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2/cmsis_os2.h:
 ../Core/Inc/rtos_threads.h:
 ../Core/Inc/write_printf.h:
-../Core/Inc/save_pitch_roll.h:

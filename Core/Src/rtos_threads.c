@@ -10,6 +10,7 @@
 #include "mpu6050.h"
 #include "compute_angles.h"
 #include "motorControlPID.h"
+#include "save_pitch_roll.h"
 #include "ssd1306.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -41,7 +42,26 @@ extern osSemaphoreId_t dmaTxCompleteSemaphoreHandle;
 extern UART_HandleTypeDef huart2;
 extern DMA_HandleTypeDef hdma_usart2_tx;
 
-motorControlPID motorControl;
+motorControlPID motorControlPitch;
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	static uint32_t last_interrupt_time = 0;
+	uint32_t current_time = HAL_GetTick(); // Get current time in ms
+
+	if (GPIO_Pin == GPIO_PIN_13) {
+	    // Write pitch and roll to flash
+//		WriteFloatToFlash(motorControlPitch.current_position, PITCH_ADDRESS);
+//	    WriteFloatToFlash(kalmanRoll, ROLL_ADDRESS);
+		if ((current_time - last_interrupt_time) > 40) { // Debounce time: 50 ms
+			motorControlPitch.target_position += 1.57f;
+			if (motorControlPitch.target_position > 4 * 1.57) {
+				motorControlPitch.current_position = 0;
+				motorControlPitch.target_position = 1.57f;
+			}
+		}
+		last_interrupt_time = current_time;
+	}
+}
 
 void mpu6050_ReadData(void *argument) {
 
@@ -115,8 +135,10 @@ void DataProcessing(void *argument) {
 
     KalmanFilter resultKalmanFilterPitch;
     KalmanFilter resultKalmanFilterRoll;
-    float kalmanRoll;
+
     float kalmanPitch;
+    float kalmanRoll;
+
     double dt;
 
     uint8_t transmitViaUART = 0;
@@ -192,6 +214,9 @@ void DataProcessing(void *argument) {
 					printf("UART mutex acquire failed\r\n");
 				}
             }
+            if (osMessageQueuePut(KalmanAngleHandle, &kalmanPitch, 0, 200) != osOK) {
+                printf("Queue is full\r\n");
+            }
             osDelayUntil(tick);
 
 //    		osDelay(20);  // Prevent rapid polling
@@ -200,32 +225,25 @@ void DataProcessing(void *argument) {
         }
     }
 }
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	static uint32_t last_interrupt_time = 0;
-	uint32_t current_time = HAL_GetTick(); // Get current time in ms
 
-	if (GPIO_Pin == GPIO_PIN_13) {
-		if ((current_time - last_interrupt_time) > 40) { // Debounce time: 50 ms
-			motorControl.target_position += 1.57f;
-			if (motorControl.target_position > 4 * 1.57) {
-				motorControl.current_position = 0;
-				motorControl.target_position = 1.57f;
-			}
-		}
-		last_interrupt_time = current_time;
-	}
-}
 void motorRun(void *argument) {
 	// Initialization of DWT
 	DWT_Init();
 	printf("Motor control started\r\n");
 	// Start PWM on all channels
-//	motorControlPID motorControl;
+//	motorControlPID motorControlPitch;
 	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET); // Set PB1 high
 
 	pwmInit();
-	pidInit(&motorControl, 1.1, 0.01, 0.13);	//1.1, 0.01, 0.13 - 0.1s | 0.8, 2.88, 0.3 - 0.1s
-	motorControl.target_position = 1.57f;
+	pidInit(&motorControlPitch, 1.1, 0.01, 0.13);	//1.1, 0.01, 0.13 - 0.1s | 0.8, 2.88, 0.3 - 0.1s
+
+	// Read back to verify
+//	float savedPitch = ReadFloatFromFlash(PITCH_ADDRESS);
+//	float savedRoll = ReadFloatFromFlash(ROLL_ADDRESS);
+
+	float kalmanPitch = 0;
+	float kalmanRoll = 0;
+	motorControlPitch.target_position = 1.57f;
 
 	float phase = 0;
 	float motor_speed = 25;
@@ -244,13 +262,17 @@ void motorRun(void *argument) {
 //		     phase -= TWO_PI; // Wrap phase
 //		 }
 //		setPWMDutyCyclePosition(phase, 1);
+        if (osMessageQueueGet(KalmanAngleHandle, &kalmanPitch, NULL, 200) == osOK) {
+        	motorControlPitch.target_position = -kalmanPitch * (M_PI / 180.0f); ;
 
-		//Continue control loop
-		controlLoop(&motorControl, 0);
-		// Delay for loop timing
-        osDelayUntil(tick);
+			controlLoop(&motorControlPitch, 0);
+			osDelayUntil(tick);
 
-//		osDelay(8);
+			// Delay for loop timing
+			//osDelay(8);
+        } else {
+        	//printf("Queue is empty\r\n");
+        }
 	}
 }
 

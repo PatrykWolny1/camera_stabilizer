@@ -4,6 +4,7 @@
 "./Core/Src/motorControlPID.o"
 "./Core/Src/mpu6050.o"
 "./Core/Src/rtos_threads.o"
+"./Core/Src/save_pitch_roll.o"
 "./Core/Src/ssd1306.o"
 "./Core/Src/stm32f4xx_hal_msp.o"
 "./Core/Src/stm32f4xx_it.o"
